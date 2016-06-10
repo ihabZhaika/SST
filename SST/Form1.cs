@@ -24,6 +24,7 @@ namespace SST
         private void pnl_drawing_Paint(object sender, PaintEventArgs e)
         {
             drawNodes(e.Graphics);
+
         }
         private void drawNodes(Graphics g)
         {
@@ -44,8 +45,35 @@ namespace SST
                 }
                 else
                 {
+
                     Node node = new Node(data[0].ToString(), (Node)data[1], (double)data[2], xGlobal, yGlobal);
+                    /** chek if the node do exist*/
+                    if (nodes.Contains(node))
+                    {
+                        MessageBox.Show("This node already exist");
+                        return;
+                    }
+
+                    /** add it to nodes list*/               
                     nodes.Add(node);
+
+                    /** if has parent add it under it*/
+                    if (node.Parent !=null)
+                    {
+                        node.Parent.Childs.Add(node);
+                        foreach (TreeNode treeNode in treeView_nodes.Nodes)
+                        {
+                            if (treeNode.Text.Equals(node.Parent.Name))
+                            {
+                                treeNode.Nodes.Add(node.Name);
+                            }
+                        }
+                    }
+                    /** add a seperate node for it*/
+                        treeView_nodes.Nodes.Add(new TreeNode(node.Name));
+
+
+                    combo_parent.Items.Add(node.Name);
                     pnl_drawing.Refresh();
                 }
             }
@@ -65,7 +93,16 @@ namespace SST
             if(combo_parent.SelectedIndex!=-1)
             {
                 data[1] = combo_parent.Items[combo_parent.SelectedIndex];
+                foreach(Node node in nodes)
+                {
+                    if(node.Name.Equals(data[1].ToString()))
+                    {
+                        data[1] = node;
+                        break;
+                    }
+                }
             }
+
             data[2] = distance;
             return data;
 

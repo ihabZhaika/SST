@@ -32,6 +32,29 @@ namespace SST
             solidBrush = new SolidBrush(background);
             pen = new Pen(solidBrush, 3);
         }
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            if(Name.Equals(((Node)obj).Name))
+            {
+                return true;
+            }
+            return false;
+
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            // TODO: write your implementation of GetHashCode() here
+            throw new NotImplementedException();
+            return base.GetHashCode();
+        }
         public void addChild(Node child)
         {
             Childs.Add(child);
@@ -43,13 +66,14 @@ namespace SST
         public void draw(Graphics g)
         {
             g.DrawEllipse(pen, new Rectangle(x, y, RADIUS, RADIUS));
+            g.DrawString(Name, new Font(FontFamily.GenericMonospace, 10), new SolidBrush(Color.Black), new PointF(x + (RADIUS / 2), y));
             linkChilds(g);
         }
         private void linkChilds(Graphics g)
         {
             foreach(Node node in childs)
             {
-                g.DrawLine(pen, new Point(x, y), new Point(node.x, node.y));
+                g.DrawLine(pen, new Point(x+(RADIUS / 2),y+ (RADIUS / 2)), new Point(node.x+ (RADIUS / 2), node.y+ (RADIUS / 2)));
             }
 
         }
