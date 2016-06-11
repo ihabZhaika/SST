@@ -66,7 +66,7 @@ namespace SST
         public void draw(Graphics g)
         {
             g.DrawEllipse(pen, new Rectangle(x, y, RADIUS, RADIUS));
-            g.DrawString(Name, new Font(FontFamily.GenericMonospace, 10), new SolidBrush(Color.Black), new PointF(x + (RADIUS / 2), y));
+            g.DrawString(Name, new Font(FontFamily.GenericSerif, 18), new SolidBrush(Color.Yellow), new PointF(x , Y-RADIUS ));
             linkChilds(g);
         }
         private void linkChilds(Graphics g)
