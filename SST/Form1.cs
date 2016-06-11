@@ -63,7 +63,7 @@ namespace SST
                     if (node.Parent != null)
                     {
                         node.Parent.Childs.Add(node);
-                        addNodeToTree(node,treeView_nodes.Nodes);
+                        Node.addNodeToTree(node,treeView_nodes.Nodes);
                     }
                     /** add a seperate node for it*/
                     treeView_nodes.Nodes.Add(new TreeNode(node.Name));
@@ -73,81 +73,17 @@ namespace SST
                 else
                 {
                     Node currentNode = nodes[nodes.IndexOf(node)];
-                    /** we check if parent get changed , we will update the tree*/
-                    if ((node.Parent != null && !node.Parent.Equals(currentNode.Parent)) || (currentNode.Parent != null && !currentNode.Parent.Equals(node.Parent)))
-                    {
-                        /** change the tree view*/
-                        changeNodeParentOnTree(currentNode, currentNode.Parent, node.Parent);
-                        /** we need to remove the node from its parent*/
-                        if(currentNode.Parent !=null)
-                        {
-                            currentNode.Parent.Childs.Remove(currentNode);
-                            
-                        }
-                        if(node.Parent != null)
-                        {
-                            node.Parent.Childs.Add(currentNode);
-
-                        }
-                        currentNode.Parent = node.Parent;
-
-
-                    }
-                    if (!currentNode.Distance.Equals(node.Distance))
-                    {
-                        currentNode.Distance = node.Distance;
-                    }
+                    Node.updateNode(treeView_nodes,node, currentNode);
 
                 }
 
             }
-
-
             pnl_drawing.Refresh();
 
         }
 
-        private void addNodeToTree(Node node , TreeNodeCollection srcTreeNodes)
-        {
-            foreach (TreeNode treeNode in srcTreeNodes)
-            {
-                if (treeNode.Text.Equals(node.Parent.Name))
-                {
-                    treeNode.Nodes.Add(node.Name);
-                }
-            }
-        }
-        private void addNodeToTree(Node node, TreeNode srcTreeNode)
-        {
-            srcTreeNode.Nodes.Add(node.Name);
-        }
-        private void changeNodeParentOnTree(Node node, Node oldParent, Node newParent)
-        {
 
-            foreach (TreeNode treeNode in treeView_nodes.Nodes)
-            {
-                if (oldParent!=null &&  treeNode.Text.Equals(oldParent.Name))
-                {
-                    removeNodeFromTree(node, treeNode);
-                }
-                if (newParent!= null && treeNode.Text.Equals(newParent.Name))
-                {
-                    addNodeToTree(node, treeNode);
 
-                }
-            }
-        }
-
-        private void removeNodeFromTree(Node node , TreeNode sourceTreeNode)
-        {
-            foreach (TreeNode treeNode in sourceTreeNode.Nodes)
-            {
-                if (treeNode != null && treeNode.Text.Equals(node.Name))
-                {
-                    sourceTreeNode.Nodes.Remove(treeNode);
-                }
-            }
-        }
         private void setData(String name, Node parent, double distance)
         {
             txt_nodeName.Text = name;
@@ -227,6 +163,26 @@ namespace SST
                 return true;
             }
             return false;
+        }
+
+        private void btn_play_Click(object sender, EventArgs e)
+        {
+            foreach(Node node in nodes)
+            {
+                /** this is the roor*/
+                if(node.Parent == null)
+                {
+                    SSTAlgorithm.getInstance(treeView_nodes).rootAlgo(node);
+
+                }
+                else
+                {
+                    SSTAlgorithm.getInstance(treeView_nodes).nonRootAlgo(node);
+
+                }
+                pnl_drawing.Refresh();
+
+            }
         }
 
         private void fillDataIntoFields(String name, Node parent, double distance)

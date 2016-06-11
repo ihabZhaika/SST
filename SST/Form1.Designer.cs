@@ -276,6 +276,7 @@
             this.btn_play.Size = new System.Drawing.Size(64, 61);
             this.btn_play.TabIndex = 0;
             this.btn_play.UseVisualStyleBackColor = true;
+            this.btn_play.Click += new System.EventHandler(this.btn_play_Click);
             // 
             // statusStrip1
             // 
