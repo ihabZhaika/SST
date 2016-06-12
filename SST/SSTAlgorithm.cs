@@ -33,11 +33,7 @@ namespace SST
         }
         public  void nonRootAlgo(Node node)
         {
-            /** we need its parent also , so if have one we will add it then remove it*/
-            if (node.Parent != null)
-            {
-                node.Childs.Add(node.Parent);
-            }
+
             List<Double> childernDistances = new List<double>(node.Childs.Count);
             double minDistance = Double.MaxValue;
             bool found = false;
@@ -65,12 +61,6 @@ namespace SST
                     child.Distance = minDistance;
 
                 }
-            }
-
-            /** if we added the parent we need to remove it*/
-            if (node.Parent != null)
-            {
-                node.Childs.Remove(node.Parent);
             }
 
         }

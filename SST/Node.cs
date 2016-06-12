@@ -10,17 +10,28 @@ namespace SST
 {
     class Node
     {
-         String name;
-         Node parent;
-         List<Node> childs;
-         double distance;
-         int x, y;
-        public  const int RADIUS = 25;
+        String name;
+        Node parent;
+        List<Node> childs;
+        double distance;
+        int x, y;
+        public const int RADIUS = 25;
         Color background { get; set; } = Color.DarkBlue;
         SolidBrush solidBrush;
         Pen pen;
 
+        public Node(Node node) : this(node.name,node.parent,node.distance,node.x,node.y)
+        {
+            foreach(Node subNode in node.childs)
+            {
+                childs.Add(new Node(subNode));
+            }
 
+        }
+        public Node(String name, Node parent, double distance, List<Node> childs, int x, int y) : this(name, parent, distance, x, y)
+        {
+            this.childs = childs;
+        }
 
         public Node(String name, Node parent, double distance, int x, int y)
         {
@@ -41,7 +52,7 @@ namespace SST
             {
                 return false;
             }
-            if(Name.Equals(((Node)obj).Name))
+            if (Name.Equals(((Node)obj).Name))
             {
                 return true;
             }
@@ -52,8 +63,6 @@ namespace SST
         // override object.GetHashCode
         public override int GetHashCode()
         {
-            // TODO: write your implementation of GetHashCode() here
-            throw new NotImplementedException();
             return base.GetHashCode();
         }
         public void addChild(Node child)
@@ -69,7 +78,7 @@ namespace SST
             /** draw the circle*/
             g.DrawEllipse(pen, new Rectangle(x, y, RADIUS, RADIUS));
             /** write the name*/
-            g.DrawString(Name, new Font(FontFamily.GenericSerif, 18), new SolidBrush(Color.Yellow), new PointF(x , Y-RADIUS ));
+            g.DrawString(Name, new Font(FontFamily.GenericSerif, 18), new SolidBrush(Color.Yellow), new PointF(x, Y - RADIUS));
             /** write the distance*/
             g.DrawString(distance.ToString(), new Font(FontFamily.GenericSerif, 18), new SolidBrush(Color.Red), new PointF(x, Y + RADIUS));
 
@@ -77,9 +86,9 @@ namespace SST
         }
         private void linkChilds(Graphics g)
         {
-            foreach(Node node in childs)
+            foreach (Node node in childs)
             {
-                g.DrawLine(pen, new Point(x+(RADIUS / 2),y+ (RADIUS / 2)), new Point(node.x+ (RADIUS / 2), node.y+ (RADIUS / 2)));
+                g.DrawLine(pen, new Point(x + (RADIUS / 2), y + (RADIUS / 2)), new Point(node.x + (RADIUS / 2), node.y + (RADIUS / 2)));
             }
 
         }
@@ -90,64 +99,73 @@ namespace SST
             {
                 if (treeNode.Text.Equals(node.Parent.Name))
                 {
-                    treeNode.Nodes.Add(node.Name);
+                    addNodeToTree(node, treeNode);
                 }
             }
         }
-        public static void  addNodeToTree(Node node, TreeNode srcTreeNode)
+        public static void addNodeToTree(Node node, TreeNode srcTreeNode)
         {
             srcTreeNode.Nodes.Add(node.Name);
         }
-        public static void changeNodeParentOnTree(TreeView tree,Node node, Node oldParent, Node newParent)
+        public static void addChildsToParentOnTree(TreeView tree, Node parentNode)
         {
 
             foreach (TreeNode treeNode in tree.Nodes)
             {
-                if (oldParent != null && treeNode.Text.Equals(oldParent.Name))
+                if (treeNode.Text.Equals(parentNode.name))
                 {
-                    removeNodeFromTree(node, treeNode);
+                    treeNode.Nodes.Clear();
+                
+                    foreach (Node node in parentNode.childs)
+                    {
+                        treeNode.Nodes.Add(node.name);
+                    }
                 }
-                if (newParent != null && treeNode.Text.Equals(newParent.Name))
-                {
-                    addNodeToTree(node, treeNode);
 
-                }
             }
         }
 
-        private static void removeNodeFromTree(Node node, TreeNode sourceTreeNode)
+        public static bool isChildsEqual(Node a, Node b)
         {
-            foreach (TreeNode treeNode in sourceTreeNode.Nodes)
+            try
             {
-                if (treeNode != null && treeNode.Text.Equals(node.Name))
+                Dictionary<Node, int> map = new Dictionary<Node, int>();
+                foreach (Node subNode in a.childs)
                 {
-                    sourceTreeNode.Nodes.Remove(treeNode);
+                    map.Add(subNode, 1);
                 }
+                foreach (Node subNode in b.childs)
+                {
+                    if (map.ContainsKey(subNode))
+                    {
+                        map[subNode] = 2;
+                    }
+                }
+
+                foreach (Node node in map.Keys)
+                {
+                    if (map[node] == 1)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+
             }
+            catch(Exception e)
+            {
+                return false;
+            }
+
         }
 
-        public static  void updateNode(TreeView tree, Node newNode, Node currentNode)
+        public static void updateNode(TreeView tree, Node newNode, Node currentNode)
         {
             /** we check if parent get changed , we will update the tree*/
-            if ( ((newNode.Parent != null && !newNode.Parent.Equals(currentNode.Parent)) || (currentNode.Parent != null && !currentNode.Parent.Equals(newNode.Parent))))
+            if (!Node.isChildsEqual(newNode, currentNode))
             {
-
                 /** change the tree view*/
-                Node.changeNodeParentOnTree(tree, currentNode, currentNode.Parent, newNode.Parent);
-                /** we need to remove the node from its parent*/
-                if (currentNode.Parent != null)
-                {
-                    currentNode.Parent.Childs.Remove(currentNode);
-
-                }
-                if (newNode.Parent != null)
-                {
-                    newNode.Parent.Childs.Add(currentNode);
-
-                }
-                currentNode.Parent = newNode.Parent;
-
-
+                Node.addChildsToParentOnTree(tree, newNode);
             }
             if (!currentNode.Distance.Equals(newNode.Distance))
             {

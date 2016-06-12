@@ -45,7 +45,7 @@ namespace SST
             else
             {
                 /**create node from the data*/
-                Node node = new Node(data[0].ToString(), (Node)data[1], (double)data[2], xGlobal, yGlobal);
+                Node node = new Node(data[0].ToString(), (Node)data[1], (double)data[2], (List<Node>)data[3], xGlobal, yGlobal);
 
                 if (isCreating)
                 {
@@ -59,21 +59,42 @@ namespace SST
                     /** add it to nodes list*/
                     nodes.Add(node);
 
-                    /** if has parent add it under it*/
-                    if (node.Parent != null)
-                    {
-                        node.Parent.Childs.Add(node);
-                        Node.addNodeToTree(node,treeView_nodes.Nodes);
-                    }
                     /** add a seperate node for it*/
-                    treeView_nodes.Nodes.Add(new TreeNode(node.Name));
+                    int index = treeView_nodes.Nodes.Add(new TreeNode(node.Name));
+                    foreach (Node subNode in node.Childs)
+                    {
+                        Node.addNodeToTree(subNode, treeView_nodes.Nodes[index]);
+
+                    }
                     combo_parent.Items.Add(node.Name);
 
                 }
                 else
                 {
                     Node currentNode = nodes[nodes.IndexOf(node)];
-                    Node.updateNode(treeView_nodes,node, currentNode);
+                    node.X = currentNode.X;
+                    node.Y = currentNode.Y;
+                    foreach (Node subNode in node.Childs)
+                    {
+                        if(!currentNode.Childs.Contains(subNode))
+                        {
+                            Node newInstanceOfSubnode = new Node(subNode);
+                            newInstanceOfSubnode.addChild(node);
+                            Node.updateNode(treeView_nodes, newInstanceOfSubnode, subNode);
+                            nodes[nodes.IndexOf(subNode)] = newInstanceOfSubnode;
+                        }
+                    }
+
+                    //foreach (Node nodee in node.Childs)
+                    //{
+                    //    Node newNode = new Node(nodee);
+                    //    newNode.addChild(node);
+                    //    Node.updateNode(treeView_nodes, newNode, nodee);
+                    //    nodes[nodes.IndexOf(nodee)] = newNode;
+
+                    //}
+                    Node.updateNode(treeView_nodes, node, currentNode);
+                    nodes[nodes.IndexOf(node)] = node;
 
                 }
 
@@ -84,12 +105,21 @@ namespace SST
 
 
 
-        private void setData(String name, Node parent, double distance)
+        private void setData(String name, Node parent, double distance, List<Node> childs)
         {
             txt_nodeName.Text = name;
             int parentIndex = nodes.IndexOf(parent);
             combo_parent.SelectedIndex = (parentIndex);
             txt_distance.Text = distance.ToString();
+            txt_childs.Text = "";
+            foreach (Node node in childs)
+            {
+                txt_childs.Text += node.Name + ",";
+            }
+            if (txt_childs.Text.Length > 0)
+            {
+                txt_childs.Text = txt_childs.Text.Substring(0, txt_childs.Text.Length - 1);
+            }
         }
         private object[] getData()
         {
@@ -98,7 +128,7 @@ namespace SST
             {
                 return null;
             }
-            Object[] data = new object[3];
+            Object[] data = new object[4];
             data[0] = txt_nodeName.Text;
             if (combo_parent.SelectedIndex != -1)
             {
@@ -114,7 +144,32 @@ namespace SST
             }
 
             data[2] = distance;
+            data[3] = parseChildsString(txt_childs.Text);
             return data;
+
+        }
+
+        private List<Node> parseChildsString(String chidls)
+        {
+            List<Node> parsedChilds = new List<Node>();
+            char[] separators = { ',' };
+            String[] childsSeparated = chidls.Split(separators);
+            foreach (String child in childsSeparated)
+            {
+                /** not empty string*/
+                if (child.Length > 0)
+                {
+                    foreach (Node node in nodes)
+                    {
+                        if (node.Name.Equals(child))
+                        {
+                            parsedChilds.Add(node);
+                        }
+                    }
+
+                }
+            }
+            return parsedChilds;
 
         }
 
@@ -129,7 +184,7 @@ namespace SST
             /** if there is node , we want to load its data*/
             if (node != null)
             {
-                setData(node.Name, node.Parent, node.Distance);
+                setData(node.Name, node.Parent, node.Distance, node.Childs);
                 isCreating = false;
                 txt_nodeName.ReadOnly = true;
                 btn_action.Text = " Update";
@@ -167,10 +222,10 @@ namespace SST
 
         private void btn_play_Click(object sender, EventArgs e)
         {
-            foreach(Node node in nodes)
+            foreach (Node node in nodes)
             {
-                /** this is the roor*/
-                if(node.Parent == null)
+                /** this is the root*/
+                if (node.Parent == null)
                 {
                     SSTAlgorithm.getInstance(treeView_nodes).rootAlgo(node);
 
