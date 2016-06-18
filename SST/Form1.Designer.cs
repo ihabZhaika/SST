@@ -270,6 +270,7 @@
             this.btn_pause.Size = new System.Drawing.Size(64, 61);
             this.btn_pause.TabIndex = 3;
             this.btn_pause.UseVisualStyleBackColor = true;
+            this.btn_pause.Click += new System.EventHandler(this.btn_pause_Click);
             // 
             // btn_step
             // 
@@ -279,6 +280,7 @@
             this.btn_step.Size = new System.Drawing.Size(64, 61);
             this.btn_step.TabIndex = 2;
             this.btn_step.UseVisualStyleBackColor = true;
+            this.btn_step.Click += new System.EventHandler(this.btn_step_Click);
             // 
             // btn_stop
             // 

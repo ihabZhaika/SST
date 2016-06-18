@@ -17,14 +17,18 @@ namespace SST
         int x, y;
         public const int RADIUS = 25;
         Color background { get; set; } = Color.DarkBlue;
+        Color pathBackground { get; set; } = Color.Red;
+
         SolidBrush solidBrush;
         Pen pen;
 
-        public Node(Node node) : this(node.name,node.parent,node.distance,node.x,node.y)
+        public Node(Node node) : this(node.name, node.parent, node.distance, node.x, node.y)
         {
-            foreach(Node subNode in node.childs)
+            foreach (Node subNode in node.childs)
             {
-                childs.Add(new Node(subNode));
+                //childs.Add(new Node(subNode));
+                childs.Add(subNode);
+
             }
 
         }
@@ -73,8 +77,18 @@ namespace SST
         {
             Childs.Remove(child);
         }
-        public void draw(Graphics g)
+
+        public void draw(Graphics g,bool isPath)
         {
+            /** set the background color*/
+            if (isPath)
+            {
+                pen.Color = pathBackground;
+            }
+            else
+            {
+                pen.Color = background;
+            }
             /** draw the circle*/
             g.DrawEllipse(pen, new Rectangle(x, y, RADIUS, RADIUS));
             /** write the name*/
@@ -115,7 +129,7 @@ namespace SST
                 if (treeNode.Text.Equals(parentNode.name))
                 {
                     treeNode.Nodes.Clear();
-                
+
                     foreach (Node node in parentNode.childs)
                     {
                         treeNode.Nodes.Add(node.name);
@@ -149,17 +163,21 @@ namespace SST
                         return false;
                     }
                 }
-                return true;
+                if(a.childs.Count!=b.childs.Count)
+                {
+                    return false;
+                }
+                return  true;
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return false;
             }
 
         }
 
-        public static void updateNode(TreeView tree, Node newNode, Node currentNode)
+        public static void updateNodeTree(TreeView tree, Node newNode, Node currentNode)
         {
             /** we check if parent get changed , we will update the tree*/
             if (!Node.isChildsEqual(newNode, currentNode))

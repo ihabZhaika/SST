@@ -15,22 +15,31 @@ namespace SST
         Boolean isCreating = true;
         int xGlobal, yGlobal;
         List<Node> nodes;
+        Timer timer;
+        bool isStep = false;
         public frm_main()
         {
             InitializeComponent();
             nodes = new List<Node>();
+            timer = new Timer();
+            timer.Interval = 1000;
+            timer.Tick += Timer_Tick;
         }
+
+
 
         private void pnl_drawing_Paint(object sender, PaintEventArgs e)
         {
             drawNodes(e.Graphics);
+            SSTAlgorithm.getInstance(treeView_nodes).drawPath(e.Graphics);
+
 
         }
         private void drawNodes(Graphics g)
         {
             foreach (Node node in nodes)
             {
-                node.draw(g);
+                node.draw(g,false);
             }
         }
         /** to add or edit a node*/
@@ -55,7 +64,7 @@ namespace SST
                         MessageBox.Show("This node already exist");
                         return;
                     }
-
+                    
                     /** add it to nodes list*/
                     nodes.Add(node);
 
@@ -80,8 +89,22 @@ namespace SST
                         {
                             Node newInstanceOfSubnode = new Node(subNode);
                             newInstanceOfSubnode.addChild(node);
-                            Node.updateNode(treeView_nodes, newInstanceOfSubnode, subNode);
-                            nodes[nodes.IndexOf(subNode)] = newInstanceOfSubnode;
+                            Node.updateNodeTree(treeView_nodes, newInstanceOfSubnode, subNode);
+                            subNode.addChild(currentNode);
+                            nodes[nodes.IndexOf(subNode)].Childs = subNode.Childs;
+                        }
+                    }
+                    foreach (Node subNode in currentNode.Childs)
+                    {
+                        if (!node.Childs.Contains(subNode))
+                        {
+                            Node newInstanceOfSubnode = new Node(subNode);
+                            newInstanceOfSubnode.removeChild(node);
+                            Node.updateNodeTree(treeView_nodes, newInstanceOfSubnode, subNode);
+                            subNode.removeChild(currentNode);
+                             nodes[nodes.IndexOf(subNode)].Childs= subNode.Childs;
+
+                            // nodes[nodes.IndexOf(subNode)] = newInstanceOfSubnode;
                         }
                     }
 
@@ -93,9 +116,9 @@ namespace SST
                     //    nodes[nodes.IndexOf(nodee)] = newNode;
 
                     //}
-                    Node.updateNode(treeView_nodes, node, currentNode);
-                    nodes[nodes.IndexOf(node)] = node;
-
+                    Node.updateNodeTree(treeView_nodes, node, currentNode);
+                    nodes[nodes.IndexOf(node)].Childs=node.Childs;
+                    nodes[nodes.IndexOf(node)].Parent=node.Parent;
                 }
 
             }
@@ -220,12 +243,23 @@ namespace SST
             return false;
         }
 
-        private void btn_play_Click(object sender, EventArgs e)
+        private void Timer_Tick(object sender, EventArgs e)
         {
+            List<Node> randomized = new List<Node>();
+            Random random = new Random((DateTime.Now.Second % 93) % 37);
+            while (randomized.Count != nodes.Count)
+            {
+                Node randNode = nodes[random.Next() % nodes.Count];
+                if (!randomized.Contains(randNode))
+                {
+                    randomized.Add(randNode);
+                }
+            }
+
             foreach (Node node in nodes)
             {
-                /** this is the root*/
                 if (node.Parent == null)
+                /** this is the root*/
                 {
                     SSTAlgorithm.getInstance(treeView_nodes).rootAlgo(node);
 
@@ -235,9 +269,32 @@ namespace SST
                     SSTAlgorithm.getInstance(treeView_nodes).nonRootAlgo(node);
 
                 }
-                pnl_drawing.Refresh();
 
             }
+            pnl_drawing.Refresh();
+            if(isStep)
+            {
+                timer.Stop();
+            }
+
+        }
+
+        private void btn_play_Click(object sender, EventArgs e)
+        {
+            isStep = false;
+            timer.Start();
+            
+        }
+
+        private void btn_pause_Click(object sender, EventArgs e)
+        {
+            timer.Stop();
+        }
+
+        private void btn_step_Click(object sender, EventArgs e)
+        {
+            isStep = true;
+            timer.Start();
         }
 
         private void fillDataIntoFields(String name, Node parent, double distance)
